@@ -1,80 +1,78 @@
 import 'package:flutter/material.dart';
-import 'package:dreamscape/pages/home_page.dart';
+import '../pages/auth_service.dart';
+import 'login_page.dart';
+import '../widgets/custom_textfield.dart';
+import '../widgets/custom_button.dart';
 
-class RegisterPage extends StatelessWidget {
+class RegisterPage extends StatefulWidget {
+  const RegisterPage({Key? key}) : super(key: key);
+
+  @override
+  State<RegisterPage> createState() => _RegisterPageState();
+}
+
+class _RegisterPageState extends State<RegisterPage> {
   final TextEditingController usernameController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
+  bool _isLoading = false;
+
+  Future<void> _register() async {
+    final username = usernameController.text.trim();
+    final email = emailController.text.trim();
+    final password = passwordController.text.trim();
+
+    if (username.isEmpty || email.isEmpty || password.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Please fill all fields")),
+      );
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    try {
+      await AuthService.register(username, email, password);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Registered successfully! Please login.")),
+      );
+
+      // Redirect to LoginPage
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => LoginPage()),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Registration failed: $e")),
+      );
+    } finally {
+      setState(() => _isLoading = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Create Account')),
+      appBar: AppBar(title: const Text("Register")),
       body: SingleChildScrollView(
-        padding: EdgeInsets.all(24),
+        padding: const EdgeInsets.all(24),
         child: Column(
           children: [
-            Text(
-              'Create Account',
-              style: TextStyle(
-                fontSize: 28,
-                fontWeight: FontWeight.bold,
-                color: Colors.deepPurple,
-              ),
-            ),
-            SizedBox(height: 24),
-            TextField(
-              controller: usernameController,
-              decoration: InputDecoration(
-                labelText: 'Username',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.person),
-              ),
-            ),
-            SizedBox(height: 16),
-            TextField(
-              controller: emailController,
-              decoration: InputDecoration(
-                labelText: 'Email',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.email),
-              ),
-            ),
-            SizedBox(height: 16),
-            TextField(
-              controller: passwordController,
-              obscureText: true,
-              decoration: InputDecoration(
-                labelText: 'Password',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.lock),
-              ),
-            ),
-            SizedBox(height: 24),
-            SizedBox(
-              width: double.infinity,
-              height: 48,
-              child: ElevatedButton(
-                onPressed: () {
-                  print("Registered");
-                  Navigator.pushReplacement(context, MaterialPageRoute(builder:(_)=>HomePage()),);
-                },
-                style: ElevatedButton.styleFrom(
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  backgroundColor: Colors.white,
-                ),
-                child: Text(
-                  'Register',
-                  style: TextStyle(
-                    color: Colors.blue,           // Text color
-                    fontSize: 24,                 // Font size
-                    fontWeight: FontWeight.bold, // Font weight
-                    fontStyle: FontStyle.italic, // Font style
-                  ),
-                ),
-              ),
+            CustomTextField(controller: usernameController, hintText: "Username"),
+            const SizedBox(height: 16),
+            CustomTextField(controller: emailController, hintText: "Email"),
+            const SizedBox(height: 16),
+            CustomTextField(controller: passwordController, hintText: "Password", obscureText: true),
+            const SizedBox(height: 24),
+            CustomButton(
+              text: _isLoading ? 'Registering...' : 'Register',
+              backgroundColor: Colors.deepPurple,
+              textColor: Colors.white,
+              borderRadius: 12,
+              padding: const EdgeInsets.symmetric(vertical: 14),
+              onPressed: _isLoading ? () {} : _register,
             ),
           ],
         ),

@@ -1,13 +1,18 @@
-const express=require("express");
-const cors=require("cors");
+import express from "express";
+import dotenv from "dotenv";
+import connectDB from "./config/db.js";
+import authRoutes from "./routes/auth.js";
+import cors from "cors";
 
-const app=express();
+dotenv.config();
+connectDB();
+
+const app = express();
 app.use(cors());
 app.use(express.json());
 
-app.post("/test",(req,res)=>{
-    const {prompt}=req.body;
-    res.json({message:`Hello Mohit! You said ${prompt}`});
-});
+// Routes
+app.use("/api/auth", authRoutes);
 
-app.listen(5000,()=>console.log("Server listening on 5000"));
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
